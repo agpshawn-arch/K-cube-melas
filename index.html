@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>K Cube Meals — Registration</title>
+<style>
+  :root{
+    --green:#2f7a4f;
+    --green-dark:#245e3d;
+    --bg:#faf7f0;
+    --text:#2b2b2b;
+    --muted:#6b6b6b;
+    --border:#e2ddd0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI',Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    padding:40px 16px;
+  }
+  .card{
+    background:#fff;
+    border-radius:16px;
+    max-width:460px;
+    width:100%;
+    padding:32px 28px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.06);
+  }
+  .logo{font-size:32px;text-align:center;margin-bottom:4px;}
+  h1{font-size:20px;text-align:center;margin:0 0 2px;}
+  .tag{text-align:center;color:var(--green);font-size:12px;letter-spacing:1px;font-weight:600;margin-bottom:24px;}
+  label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px;}
+  input, select{
+    width:100%;
+    padding:12px 14px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    font-size:15px;
+    background:#fcfbf8;
+  }
+  input:focus, select:focus{outline:2px solid var(--green);border-color:var(--green);}
+  .error{color:#c0392b;font-size:13px;margin-top:4px;display:none;}
+  button{
+    width:100%;
+    margin-top:26px;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:var(--green);
+    color:#fff;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  button:hover{background:var(--green-dark);}
+  button:disabled{opacity:0.6;cursor:not-allowed;}
+  .success{
+    text-align:center;
+    padding:20px 0;
+  }
+  .success .check{
+    font-size:40px;
+    color:var(--green);
+    margin-bottom:8px;
+  }
+  .hidden{display:none;}
+  .top-error{
+    background:#fdecea;
+    color:#c0392b;
+    padding:10px 14px;
+    border-radius:8px;
+    font-size:14px;
+    margin-top:16px;
+    display:none;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">🍃</div>
+  <h1>K Cube Meals</h1>
+  <div class="tag">FRESH · HOMELY · AFFORDABLE</div>
+
+  <form id="regForm" novalidate>
+    <label for="name">Full Name*</label>
+    <input type="text" id="name" required />
+    <div class="error" id="err-name">Please enter your name.</div>
+
+    <label for="mobile">Mobile Number*</label>
+    <input type="tel" id="mobile" maxlength="10" required />
+    <div class="error" id="err-mobile">Please enter a valid 10-digit mobile number.</div>
+
+    <label for="email">Email ID*</label>
+    <input type="email" id="email" required />
+    <div class="error" id="err-email">Please enter a valid email address.</div>
+
+    <label for="area">Your Delivery Area*</label>
+    <select id="area" required>
+      <option value="">-- Select your area --</option>
+      <option>Kakkanad</option>
+      <option>Edappally</option>
+      <option>Kaloor</option>
+      <option>Palarivattom</option>
+      <option>Vyttila</option>
+      <option>Fort Kochi</option>
+      <option>Mattancherry</option>
+      <option>Thrippunithura</option>
+      <option>Panampilly Nagar</option>
+      <option>Kadavanthra</option>
+      <option>Thevara</option>
+      <option>Aluva</option>
+      <option>Eroor</option>
+      <option>Cheranalloor</option>
+      <option>Vennala</option>
+      <option value="Other">Other</option>
+    </select>
+    <div class="error" id="err-area">Please select your delivery area.</div>
+
+    <div id="otherAreaWrap" class="hidden">
+      <label for="otherArea">Please type your area*</label>
+      <input type="text" id="otherArea" />
+      <div class="error" id="err-otherArea">Please type your delivery area.</div>
+    </div>
+
+    <button type="submit" id="submitBtn">Submit Registration</button>
+    <div class="top-error" id="topError">Something went wrong. Please try again.</div>
+  </form>
+
+  <div class="success hidden" id="successBox">
+    <div class="check">✓</div>
+    <h1>Thank you!</h1>
+    <p style="color:var(--muted)">We've received your details. You'll get an email update as soon as your order status changes.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+if (window.__kcubeRegLoaded) {
+  console.warn('Registration script already loaded — skipping duplicate execution.');
+} else {
+window.__kcubeRegLoaded = true;
+(function(){
+  // ---- Supabase connection (safe to expose publishable key in browser) ----
+  const SUPABASE_URL = "https://kuwldjfdgzzflqucdasx.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_YCajekLcdhKAryRRQyhf6A_GZd363zy";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+  const form = document.getElementById('regForm');
+  const areaSelect = document.getElementById('area');
+  const otherAreaWrap = document.getElementById('otherAreaWrap');
+  const submitBtn = document.getElementById('submitBtn');
+  const topError = document.getElementById('topError');
+
+  areaSelect.addEventListener('change', () => {
+    otherAreaWrap.classList.toggle('hidden', areaSelect.value !== 'Other');
+  });
+
+  function showError(id, show){
+    document.getElementById('err-' + id).style.display = show ? 'block' : 'none';
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    topError.style.display = 'none';
+
+    const name = document.getElementById('name').value.trim();
+    const mobile = document.getElementById('mobile').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const area = areaSelect.value;
+    const otherArea = document.getElementById('otherArea').value.trim();
+
+    let valid = true;
+    showError('name', !name); if(!name) valid = false;
+    const mobileValid = /^[0-9]{10}$/.test(mobile);
+    showError('mobile', !mobileValid); if(!mobileValid) valid = false;
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    showError('email', !emailValid); if(!emailValid) valid = false;
+    showError('area', !area); if(!area) valid = false;
+    if(area === 'Other'){
+      showError('otherArea', !otherArea);
+      if(!otherArea) valid = false;
+    }
+    if(!valid) return;
+
+    const finalArea = area === 'Other' ? otherArea : area;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    const { error } = await supabase.from('registrations').insert({
+      name, mobile, email, delivery_area: finalArea
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Registration';
+
+    if(error){
+      console.error(error);
+      topError.textContent = 'Something went wrong: ' + error.message;
+      topError.style.display = 'block';
+      return;
+    }
+
+    form.classList.add('hidden');
+    document.getElementById('successBox').classList.remove('hidden');
+  });
+})();
+}
+</script>
+
+</body>
+</html>
