@@ -4,11 +4,11 @@
 const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL = "https://kuwldjfdgzzflqucdasx.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_YCajekLcdhKAryRRQyhf6A_GZd363zy";
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 
 exports.handler = async function () {
   try {
-    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
 
     const { data: menuItems, error: menuError } = await supabase
       .from('menu_items')
@@ -76,3 +76,4 @@ exports.handler = async function () {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 };
+
