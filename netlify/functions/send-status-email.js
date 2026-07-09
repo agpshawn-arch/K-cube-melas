@@ -4,7 +4,7 @@
 const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL = "https://kuwldjfdgzzflqucdasx.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_YCajekLcdhKAryRRQyhf6A_GZd363zy";
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 
 exports.handler = async function (event) {
   try {
@@ -15,7 +15,7 @@ exports.handler = async function (event) {
       return { statusCode: 200, body: JSON.stringify({ skipped: true }) };
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY);
     const tableName = table === 'daily_orders' ? 'daily_orders' : 'registrations';
 
     const { data: order, error } = await supabase
