@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>K Cube Meals — Choose Your Plan</title>
+<style>
+  :root{
+    --green:#2f7a4f;
+    --green-dark:#245e3d;
+    --bg:#faf7f0;
+    --text:#2b2b2b;
+    --muted:#6b6b6b;
+    --border:#e2ddd0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI',Arial,sans-serif; background:var(--bg); color:var(--text);
+    display:flex; justify-content:center; padding:40px 16px;
+  }
+  .card{
+    background:#fff; border-radius:16px; max-width:480px; width:100%; padding:32px 28px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.06);
+  }
+  .logo{font-size:32px;text-align:center;margin-bottom:4px;}
+  h1{font-size:20px;text-align:center;margin:0 0 2px;}
+  .tag{text-align:center;color:var(--green);font-size:12px;letter-spacing:1px;font-weight:600;margin-bottom:24px;}
+  label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px;}
+  input, select{
+    width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:10px; font-size:15px; background:#fcfbf8;
+  }
+  input:focus, select:focus{outline:2px solid var(--green);border-color:var(--green);}
+  .plan-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;}
+  .plan-card{
+    border:2px solid var(--border); border-radius:12px; padding:14px; cursor:pointer; text-align:center;
+    transition:all .15s ease; background:#fcfbf8;
+  }
+  .plan-card.selected{border-color:var(--green); background:#eef6ef;}
+  .plan-card .name{font-weight:800; color:var(--green); font-size:14px;}
+  .plan-card .price{font-size:13px; color:var(--muted); margin-top:4px;}
+  button{
+    width:100%; margin-top:22px; padding:14px; border:none; border-radius:10px; background:var(--green);
+    color:#fff; font-size:16px; font-weight:600; cursor:pointer;
+  }
+  button:hover{background:var(--green-dark);}
+  button:disabled{opacity:0.6;cursor:not-allowed;}
+  .error{color:#c0392b; font-size:14px; margin-top:14px; text-align:center; display:none;}
+  .success-box{display:none; text-align:center; padding:10px 0;}
+  .success-box .check{font-size:40px;color:var(--green);margin-bottom:8px;}
+  .success-box .row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:14px; text-align:left;}
+  .success-box .row .label{color:var(--muted);}
+  .success-box .row .value{font-weight:700;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="card" id="formCard">
+  <div class="logo">🍃</div>
+  <h1>K Cube Meals</h1>
+  <div class="tag">CHOOSE YOUR PLAN</div>
+
+  <label for="name">Full Name*</label>
+  <input type="text" id="name" />
+
+  <label for="mobile">Mobile Number*</label>
+  <input type="tel" id="mobile" maxlength="10" inputmode="numeric" />
+
+  <label for="email">Email ID*</label>
+  <input type="email" id="email" />
+
+  <label for="area">Your Delivery Area*</label>
+  <select id="area">
+    <option value="">-- Select your area --</option>
+    <option>Kakkanad</option>
+    <option>Edappally</option>
+    <option>Kaloor</option>
+    <option>Palarivattom</option>
+    <option>Vyttila</option>
+    <option>Fort Kochi</option>
+    <option>Mattancherry</option>
+    <option>Thrippunithura</option>
+    <option>Panampilly Nagar</option>
+    <option>Kadavanthra</option>
+    <option>Thevara</option>
+    <option>Aluva</option>
+    <option>Eroor</option>
+    <option>Cheranalloor</option>
+    <option>Vennala</option>
+    <option>Other</option>
+  </select>
+
+  <label>Choose your meal*</label>
+  <div class="plan-grid" id="mealGrid" style="grid-template-columns:1fr;"></div>
+
+  <label>Choose your plan duration*</label>
+  <div class="plan-grid" id="planGrid"></div>
+
+  <div id="totalBox" style="display:none; margin-top:16px; padding:14px; background:#eef6ef; border-radius:10px; text-align:center;">
+    <span style="color:var(--muted); font-size:13px;">Total for this plan:</span>
+    <div style="font-size:22px; font-weight:800; color:var(--green);" id="totalPrice"></div>
+  </div>
+
+  <button id="subscribeBtn">Subscribe Now</button>
+  <div class="error" id="errorBox"></div>
+</div>
+
+<div class="card hidden" id="successCard">
+  <div class="success-box" style="display:block;">
+    <div class="check">✓</div>
+    <h1>You're subscribed!</h1>
+    <div class="row"><span class="label">Plan</span><span class="value" id="resPlan"></span></div>
+    <div class="row"><span class="label">Price</span><span class="value" id="resPrice"></span></div>
+    <div class="row"><span class="label">Start Date</span><span class="value" id="resStart"></span></div>
+    <div class="row"><span class="label">End Date</span><span class="value" id="resEnd"></span></div>
+    <p style="color:var(--muted); font-size:13px; margin-top:16px;">You can check your plan anytime at our "My Plan" page using your mobile number.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+if (window.__kcubePlanLoaded) {
+  console.warn('Plan script already loaded — skipping duplicate execution.');
+} else {
+window.__kcubePlanLoaded = true;
+(function(){
+  const SUPABASE_URL = "https://kuwldjfdgzzflqucdasx.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_YCajekLcdhKAryRRQyhf6A_GZd363zy";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+  const planTypeLabels = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', quarterly: 'Quarterly', annual: 'Annual' };
+  const planDurationDays = { daily: 1, weekly: 7, monthly: 30, quarterly: 90, annual: 365 };
+  let selectedPlan = null;
+  let selectedMeal = null; // { id, name, price, meal_type }
+
+  async function loadMeals(){
+    const { data, error } = await supabase.from('menu_items').select('*').eq('active', true).order('meal_type');
+    const grid = document.getElementById('mealGrid');
+    if(error || !data || data.length === 0){
+      grid.innerHTML = '<p style="color:#c0392b;font-size:13px;">No meals available right now. Please check back later.</p>';
+      return;
+    }
+    grid.innerHTML = data.map(m => `
+      <div class="plan-card" data-id="${m.id}" data-name="${escapeHtml(m.name)}" data-price="${m.price || 0}" data-type="${escapeHtml(m.meal_type || '')}" style="text-align:left;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div class="name">${escapeHtml(m.name)} ${m.meal_type ? `(${escapeHtml(m.meal_type)})` : ''}</div>
+          <div class="price">${escapeHtml(m.description || '')}</div>
+        </div>
+        <div style="font-weight:800;color:var(--green);">₹${m.price != null ? m.price : '-'}/meal</div>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('#mealGrid .plan-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('#mealGrid .plan-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedMeal = {
+          id: card.getAttribute('data-id'),
+          name: card.getAttribute('data-name'),
+          price: Number(card.getAttribute('data-price')),
+          meal_type: card.getAttribute('data-type')
+        };
+        updateTotal();
+      });
+    });
+  }
+
+  function loadPlans(){
+    const grid = document.getElementById('planGrid');
+    const order = ['daily','weekly','monthly','quarterly','annual'];
+    grid.innerHTML = order.map(p => `
+      <div class="plan-card" data-plan="${p}">
+        <div class="name">${planTypeLabels[p]}</div>
+        <div class="price">${planDurationDays[p]} day${planDurationDays[p] > 1 ? 's' : ''}</div>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('#planGrid .plan-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('#planGrid .plan-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedPlan = card.getAttribute('data-plan');
+        updateTotal();
+      });
+    });
+  }
+
+  function updateTotal(){
+    const totalBox = document.getElementById('totalBox');
+    if(selectedPlan && selectedMeal){
+      const total = selectedMeal.price * planDurationDays[selectedPlan];
+      document.getElementById('totalPrice').textContent = '₹' + total + ' (₹' + selectedMeal.price + ' × ' + planDurationDays[selectedPlan] + ' days)';
+      totalBox.style.display = 'block';
+    } else {
+      totalBox.style.display = 'none';
+    }
+  }
+
+  function escapeHtml(str){
+    if(!str) return '';
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  document.getElementById('subscribeBtn').addEventListener('click', async () => {
+    const errorBox = document.getElementById('errorBox');
+    errorBox.style.display = 'none';
+
+    const name = document.getElementById('name').value.trim();
+    const mobile = document.getElementById('mobile').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const deliveryArea = document.getElementById('area').value;
+
+    if(!name || !/^[0-9]{10}$/.test(mobile) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !deliveryArea){
+      errorBox.textContent = 'Please fill in all fields correctly.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    if(!selectedMeal){
+      errorBox.textContent = 'Please select a meal.';
+      errorBox.style.display = 'block';
+      return;
+    }
+    if(!selectedPlan){
+      errorBox.textContent = 'Please select a plan duration.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('subscribeBtn');
+    btn.disabled = true;
+    btn.textContent = 'Subscribing...';
+
+    try {
+      const resp = await fetch('/.netlify/functions/create-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, mobile, email, deliveryArea, planType: selectedPlan, menuItemId: selectedMeal.id })
+      });
+      const result = await resp.json();
+
+      btn.disabled = false;
+      btn.textContent = 'Subscribe Now';
+
+      if(result.error){
+        errorBox.textContent = result.error;
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('resPlan').textContent = planTypeLabels[result.planType] || result.planType;
+      document.getElementById('resPrice').textContent = result.price ? '₹' + result.price : '-';
+      document.getElementById('resStart').textContent = result.startDate;
+      document.getElementById('resEnd').textContent = result.endDate;
+
+      document.getElementById('formCard').classList.add('hidden');
+      document.getElementById('successCard').classList.remove('hidden');
+    } catch(err){
+      btn.disabled = false;
+      btn.textContent = 'Subscribe Now';
+      errorBox.textContent = 'Something went wrong. Please try again.';
+      errorBox.style.display = 'block';
+    }
+  });
+
+  loadMeals();
+  loadPlans();
+})();
+}
+</script>
+
+</body>
+</html>
