@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>K Cube Meals — My Plan</title>
+<style>
+  :root{
+    --green:#2f7a4f;
+    --green-dark:#245e3d;
+    --bg:#faf7f0;
+    --text:#2b2b2b;
+    --muted:#6b6b6b;
+    --border:#e2ddd0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI',Arial,sans-serif; background:var(--bg); color:var(--text);
+    display:flex; justify-content:center; padding:40px 16px;
+  }
+  .card{
+    background:#fff; border-radius:16px; max-width:440px; width:100%; padding:32px 28px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.06);
+  }
+  .logo{font-size:32px;text-align:center;margin-bottom:4px;}
+  h1{font-size:20px;text-align:center;margin:0 0 2px;}
+  .tag{text-align:center;color:var(--green);font-size:12px;letter-spacing:1px;font-weight:600;margin-bottom:24px;}
+  label{display:block;font-size:14px;font-weight:600;margin:16px 0 6px;}
+  input{
+    width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:10px; font-size:15px; background:#fcfbf8;
+  }
+  input:focus{outline:2px solid var(--green);border-color:var(--green);}
+  button{
+    width:100%; margin-top:22px; padding:14px; border:none; border-radius:10px; background:var(--green);
+    color:#fff; font-size:16px; font-weight:600; cursor:pointer;
+  }
+  button:hover{background:var(--green-dark);}
+  button:disabled{opacity:0.6;cursor:not-allowed;}
+  .error{color:#c0392b; font-size:14px; margin-top:14px; text-align:center; display:none;}
+  .plan-box{display:none; margin-top:24px; border:1px solid var(--border); border-radius:12px; padding:20px; background:#fafaf7;}
+  .plan-box .status{
+    display:inline-block; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; color:#fff; margin-bottom:12px;
+  }
+  .status.active{background:#16a34a;}
+  .status.expired{background:#dc2626;}
+  .status.cancelled{background:#9aa0a6;}
+  .plan-box .row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:14px;}
+  .plan-box .row:last-child{border-bottom:none;}
+  .plan-box .row .label{color:var(--muted);}
+  .plan-box .row .value{font-weight:700;}
+  .hidden{display:none;}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">🍃</div>
+  <h1>K Cube Meals</h1>
+  <div class="tag">MY SUBSCRIPTION PLAN</div>
+
+  <label for="mobile">Enter your registered mobile number</label>
+  <input type="tel" id="mobile" maxlength="10" inputmode="numeric" placeholder="10-digit mobile number" />
+
+  <button id="checkBtn">Check My Plan</button>
+  <div class="error" id="errorBox"></div>
+
+  <div class="plan-box" id="planBox">
+    <span class="status" id="planStatus"></span>
+    <div class="row"><span class="label">Name</span><span class="value" id="planName"></span></div>
+    <div class="row"><span class="label">Plan Type</span><span class="value" id="planType"></span></div>
+    <div class="row"><span class="label">Price</span><span class="value" id="planPrice"></span></div>
+    <div class="row"><span class="label">Start Date</span><span class="value" id="planStart"></span></div>
+    <div class="row"><span class="label">End Date</span><span class="value" id="planEnd"></span></div>
+  </div>
+</div>
+
+<script>
+  const checkBtn = document.getElementById('checkBtn');
+  const errorBox = document.getElementById('errorBox');
+  const planBox = document.getElementById('planBox');
+
+  const planTypeLabels = {
+    daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly',
+    quarterly: 'Quarterly', annual: 'Annual', custom: 'Custom'
+  };
+
+  checkBtn.addEventListener('click', async () => {
+    errorBox.style.display = 'none';
+    planBox.style.display = 'none';
+
+    const mobile = document.getElementById('mobile').value.trim();
+    if(!/^[0-9]{10}$/.test(mobile)){
+      errorBox.textContent = 'Please enter a valid 10-digit mobile number.';
+      errorBox.style.display = 'block';
+      return;
+    }
+
+    checkBtn.disabled = true;
+    checkBtn.textContent = 'Checking...';
+
+    try {
+      const resp = await fetch('/.netlify/functions/get-subscription?mobile=' + encodeURIComponent(mobile));
+      const data = await resp.json();
+
+      checkBtn.disabled = false;
+      checkBtn.textContent = 'Check My Plan';
+
+      if(data.error){
+        errorBox.textContent = data.error;
+        errorBox.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('planStatus').textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+      document.getElementById('planStatus').className = 'status ' + data.status;
+      document.getElementById('planName').textContent = data.name || '-';
+      document.getElementById('planType').textContent = planTypeLabels[data.planType] || data.planType;
+      document.getElementById('planPrice').textContent = data.price ? '₹' + data.price : '-';
+      document.getElementById('planStart').textContent = data.startDate;
+      document.getElementById('planEnd').textContent = data.endDate;
+      planBox.style.display = 'block';
+    } catch(err){
+      checkBtn.disabled = false;
+      checkBtn.textContent = 'Check My Plan';
+      errorBox.textContent = 'Something went wrong. Please try again.';
+      errorBox.style.display = 'block';
+    }
+  });
+</script>
+
+</body>
+</html>
