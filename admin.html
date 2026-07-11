@@ -530,7 +530,7 @@ window.__kcubeAdminLoaded = true;
     setTimeout(() => btn.textContent = 'Copy Registration Link', 1500);
   });
 
-  document.getElementById('surveyLink').value = 'https://survey.kcubemeal2.shop.netlify.app/';
+  document.getElementById('surveyLink').value = 'https://survey.kcubemeal2.shop/';
   document.getElementById('copySurveyBtn').addEventListener('click', () => {
     navigator.clipboard.writeText(document.getElementById('surveyLink').value);
     const btn = document.getElementById('copySurveyBtn');
