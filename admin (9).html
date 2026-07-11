@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>K Cube Meals — Admin Dashboard</title>
+<style>
+  :root{
+    --turmeric:#E8A33D;
+    --turmeric-dark:#C9852A;
+    --leaf:#2D5F3E;
+    --leaf-light:#3F7A53;
+    --cream:#FFF8EC;
+    --paper:#FFFEFA;
+    --terracotta:#C4502E;
+    --charcoal:#2B2620;
+    --sand:#F3E4C8;
+    --line:#E2CFA0;
+    --muted:#8a7c62;
+    --shadow: 0 10px 28px rgba(196,80,46,0.10);
+    --pending:#9aa0a6;
+    --accepted:#2563eb;
+    --packing:#d97706;
+    --delivered:#16a34a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Trebuchet MS','Segoe UI',Arial,sans-serif;
+    background:
+      radial-gradient(1100px 650px at 8% -8%, rgba(232,163,61,0.12), transparent 60%),
+      radial-gradient(900px 600px at 105% 10%, rgba(45,95,62,0.08), transparent 60%),
+      var(--cream);
+    color:var(--charcoal);
+  }
+  .hidden{display:none !important;}
+
+  .auth-card{
+    max-width:400px;margin:70px auto;background:var(--paper);padding:34px 30px;border-radius:20px;
+    box-shadow:var(--shadow);border:1.5px solid var(--line);
+  }
+  .auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+  .leaf-badge{
+    width:48px;height:48px;border-radius:42% 58% 55% 45%;
+    background:linear-gradient(145deg,var(--leaf),var(--leaf-light));
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .leaf-badge span{font-size:20px;}
+  .auth-brand .name{font-size:19px;font-weight:800;color:var(--leaf);line-height:1.1;}
+  .auth-brand .tag{font-size:11px;color:var(--terracotta);letter-spacing:0.8px;font-weight:700;margin-top:2px;}
+  .auth-card h2{margin:0 0 18px;font-size:19px;color:var(--leaf);}
+  .auth-card label{display:block;font-size:13px;font-weight:700;color:var(--leaf);margin-bottom:5px;}
+  .auth-card input{
+    width:100%;padding:12px;margin-bottom:14px;border:1.5px solid var(--line);border-radius:10px;font-size:15px;
+    background:var(--paper);font-family:inherit;
+  }
+  .auth-card input:focus{outline:none;border-color:var(--turmeric-dark);box-shadow:0 0 0 3px rgba(232,163,61,0.2);}
+  .auth-card button.primary{
+    width:100%;padding:12px;background:var(--leaf);color:#fff;border:none;border-radius:10px;font-size:15px;
+    font-weight:800;cursor:pointer;transition:background .15s ease;
+  }
+  .auth-card button.primary:hover{background:var(--leaf-light);}
+  .auth-card button.primary:disabled{opacity:0.6;cursor:not-allowed;}
+  .auth-error{color:var(--terracotta);font-size:13px;margin-top:8px;display:none;font-weight:600;}
+  .auth-success{color:var(--leaf);font-size:13px;margin-top:8px;display:none;font-weight:600;}
+  .auth-links{margin-top:16px;font-size:13px;text-align:center;color:var(--muted);}
+  .auth-links a{color:var(--terracotta);cursor:pointer;text-decoration:underline;font-weight:700;}
+  .auth-back{font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:16px;display:inline-block;font-weight:600;}
+
+  .topbar{
+    background:var(--paper);border-bottom:1.5px solid var(--line);
+    padding:14px 26px;display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 2px 10px rgba(0,0,0,0.03);
+  }
+  .topbar .brand{display:flex;align-items:center;gap:12px;}
+  .topbar .brand .name{font-size:16px;font-weight:800;color:var(--leaf);}
+  .topbar .brand .tag{font-size:10px;color:var(--terracotta);letter-spacing:0.8px;font-weight:700;}
+  .topbar button{
+    border:1.5px solid var(--line);background:var(--paper);padding:9px 16px;border-radius:10px;
+    cursor:pointer;font-size:13.5px;font-weight:700;color:var(--charcoal);
+  }
+  .topbar button:hover{background:var(--sand);}
+  .wrap{max-width:1150px;margin:0 auto;padding:24px;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:22px;border-bottom:2px solid var(--line);}
+  .tab-btn{
+    padding:11px 20px;background:transparent;border:none;border-bottom:3px solid transparent;
+    font-size:14.5px;font-weight:800;color:var(--muted);cursor:pointer;margin-bottom:-2px;
+  }
+  .tab-btn.active{color:var(--leaf);border-bottom-color:var(--leaf);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .panel-box{
+    background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:22px;
+    box-shadow:var(--shadow);
+  }
+  .panel-box h3{margin:0 0 6px;font-size:15.5px;color:var(--leaf);}
+  .panel-box p{margin:0 0 12px;color:var(--muted);font-size:13px;}
+  .flex-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .flex-row input{
+    flex:1;min-width:220px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;
+    background:#fdfaf3;font-family:inherit;
+  }
+  .flex-row button{
+    padding:10px 18px;background:var(--leaf);color:#fff;border:none;border-radius:10px;cursor:pointer;
+    font-size:14px;font-weight:700;
+  }
+  .flex-row button.ghost{background:var(--paper);border:1.5px solid var(--line);color:var(--charcoal);}
+  .settings-note{font-size:12px;color:var(--muted);margin-top:10px;}
+
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;}
+  .stats-row2{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px;}
+  @media (max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);} .stats-row2{grid-template-columns:repeat(2,1fr);}}
+  .stat-card{
+    background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:16px 18px;
+    box-shadow:var(--shadow);
+  }
+  .stat-card.small{padding:12px 14px;}
+  .stat-card .num{font-size:26px;font-weight:800;color:var(--leaf);}
+  .stat-card.small .num{font-size:20px;}
+  .stat-card .label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.4px;}
+  .meal-edit-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .meal-edit-row select, .meal-edit-row input{
+    padding:5px 7px;border:1.5px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;width:80px;
+  }
+  .meal-edit-row button{
+    padding:5px 9px;font-size:11px;border:1.5px solid var(--line);background:var(--leaf);color:#fff;
+    border-radius:6px;cursor:pointer;font-weight:700;
+  }
+  .export-btn{
+    padding:8px 14px;background:var(--turmeric);color:#fff;border:none;border-radius:8px;cursor:pointer;
+    font-size:13px;font-weight:800;
+  }
+  .export-btn:hover{background:var(--turmeric-dark);}
+
+  table{width:100%;border-collapse:collapse;background:var(--paper);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);border:1.5px solid var(--line);}
+  th,td{padding:12px 14px;text-align:left;font-size:13.5px;border-bottom:1px solid var(--line);}
+  th{background:var(--sand);font-size:11.5px;text-transform:uppercase;color:var(--leaf);letter-spacing:0.4px;font-weight:800;}
+  tr:last-child td{border-bottom:none;}
+  .badge{display:inline-block;padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:700;color:#fff;}
+  .badge.received{background:var(--pending);}
+  .badge.processing{background:var(--accepted);}
+  .badge.packed{background:var(--packing);}
+  .badge.out_for_delivery{background:#7c3aed;}
+  .badge.delivered{background:var(--delivered);}
+  .actions button{
+    margin-right:6px;margin-bottom:4px;padding:6px 11px;font-size:12px;border:1.5px solid var(--line);
+    background:var(--paper);border-radius:8px;cursor:pointer;font-weight:700;color:var(--leaf);
+  }
+  .actions button:hover{background:var(--sand);}
+  .empty{padding:34px;text-align:center;color:var(--muted);background:var(--paper);border-radius:14px;border:1.5px solid var(--line);}
+  .table-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .table-header-row .refresh-note{font-size:12.5px;color:var(--muted);}
+  .table-header-row button{
+    padding:8px 14px;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;
+    cursor:pointer;font-size:13px;font-weight:700;color:var(--leaf);
+  }
+</style>
+</head>
+<body>
+
+<div id="loginView" class="auth-card">
+  <div class="auth-brand">
+    <div class="leaf-badge"><span>🍃</span></div>
+    <div>
+      <div class="name">K Cube Meals</div>
+      <div class="tag">ADMIN PORTAL</div>
+    </div>
+  </div>
+  <h2>Admin Login</h2>
+  <label>Email</label>
+  <input type="email" id="loginEmail" />
+  <label>Password</label>
+  <input type="password" id="loginPassword" />
+  <button class="primary" id="loginBtn">Log In</button>
+  <div class="auth-error" id="loginError"></div>
+  <div class="auth-links">
+    <a id="showForgot">Forgot password?</a> &nbsp;|&nbsp;
+    <a id="showSignup">First time? Create admin account</a>
+  </div>
+</div>
+
+<div id="signupView" class="auth-card hidden">
+  <span class="auth-back" id="backFromSignup">&larr; Back to login</span>
+  <div class="auth-brand">
+    <div class="leaf-badge"><span>🍃</span></div>
+    <div>
+      <div class="name">K Cube Meals</div>
+      <div class="tag">ADMIN PORTAL</div>
+    </div>
+  </div>
+  <h2>Create Admin Account</h2>
+  <label>Email</label>
+  <input type="email" id="signupEmail" />
+  <label>Password (min 6 characters)</label>
+  <input type="password" id="signupPassword" />
+  <button class="primary" id="signupBtn">Create Account</button>
+  <div class="auth-error" id="signupError"></div>
+  <div class="auth-success" id="signupSuccess"></div>
+</div>
+
+<div id="forgotView" class="auth-card hidden">
+  <span class="auth-back" id="backFromForgot">&larr; Back to login</span>
+  <div class="auth-brand">
+    <div class="leaf-badge"><span>🍃</span></div>
+    <div>
+      <div class="name">K Cube Meals</div>
+      <div class="tag">ADMIN PORTAL</div>
+    </div>
+  </div>
+  <h2>Reset Password</h2>
+  <label>Enter your admin email</label>
+  <input type="email" id="forgotEmail" />
+  <button class="primary" id="forgotBtn">Send Reset Link</button>
+  <div class="auth-error" id="forgotError"></div>
+  <div class="auth-success" id="forgotSuccess"></div>
+</div>
+
+<div id="resetView" class="auth-card hidden">
+  <div class="auth-brand">
+    <div class="leaf-badge"><span>🍃</span></div>
+    <div>
+      <div class="name">K Cube Meals</div>
+      <div class="tag">ADMIN PORTAL</div>
+    </div>
+  </div>
+  <h2>Set New Password</h2>
+  <label>New Password (min 6 characters)</label>
+  <input type="password" id="newPassword" />
+  <button class="primary" id="updatePasswordBtn">Update Password</button>
+  <div class="auth-error" id="resetError"></div>
+  <div class="auth-success" id="resetSuccess"></div>
+</div>
+
+<div id="dashboard" class="hidden">
+  <div class="topbar">
+    <div class="brand">
+      <div class="leaf-badge"><span>🍃</span></div>
+      <div>
+        <div class="name">K Cube Meals</div>
+        <div class="tag">ADMIN DASHBOARD</div>
+      </div>
+    </div>
+    <button id="logoutBtn">Log Out</button>
+  </div>
+
+  <div class="wrap">
+
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">Total Orders</div></div>
+      <div class="stat-card"><div class="num" id="statLeads">0</div><div class="label">Surveys Received</div></div>
+      <div class="stat-card"><div class="num" id="statVeg">0</div><div class="label">Veg Orders</div></div>
+      <div class="stat-card"><div class="num" id="statNonVeg">0</div><div class="label">Non-Veg Orders</div></div>
+    </div>
+    <div class="stats-row" style="grid-template-columns:1fr;margin-bottom:14px;">
+      <div class="stat-card"><div class="num" id="statRevenue">₹0</div><div class="label">Revenue Collected (Delivered Orders)</div></div>
+    </div>
+    <div class="stats-row2" id="pipelineRow">
+      <div class="stat-card small"><div class="num" id="statReceived">0</div><div class="label">Received</div></div>
+      <div class="stat-card small"><div class="num" id="statProcessing">0</div><div class="label">Processing</div></div>
+      <div class="stat-card small"><div class="num" id="statPacked">0</div><div class="label">Packed</div></div>
+      <div class="stat-card small"><div class="num" id="statOutForDelivery">0</div><div class="label">Out for Delivery</div></div>
+      <div class="stat-card small"><div class="num" id="statDelivered">0</div><div class="label">Delivered</div></div>
+    </div>
+
+    <div class="panel-box">
+      <h3>Share Your Links</h3>
+      <p>Send these links to customers — registrations and survey answers appear automatically below.</p>
+      <div class="flex-row" style="margin-bottom:10px;">
+        <input type="text" id="planLink" readonly />
+        <button id="copyPlanBtn">Copy Registration &amp; Plan Link</button>
+      </div>
+      <div class="flex-row">
+        <input type="text" id="surveyLink" readonly />
+        <button id="copySurveyBtn" class="ghost">Copy Survey Link</button>
+      </div>
+    </div>
+
+    <div class="panel-box">
+      <h3>Notification Sender Email</h3>
+      <p>This is the "from" name/address used when sending status update emails to customers.</p>
+      <div class="flex-row">
+        <input type="text" id="notifEmail" placeholder="notification email" />
+        <button id="saveEmailBtn">Save</button>
+      </div>
+      <div class="settings-note">Note: due to email provider rules, only verified domains can be used as real "from" addresses. Contact your developer before changing this to a brand-new domain.</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tabRegBtn">Orders / Registrations</button>
+      <button class="tab-btn" id="tabLeadBtn">Survey Leads</button>
+      <button class="tab-btn" id="tabDailyBtn">Daily Workflow</button>
+      <button class="tab-btn" id="tabMenuBtn">Menu</button>
+      <button class="tab-btn" id="tabSubsBtn">Subscriptions</button>
+    </div>
+
+    <div class="tab-panel active" id="tabRegistrations">
+      <div class="table-header-row">
+        <div class="refresh-note">Showing all registrations, newest first.</div>
+        <div style="display:flex;gap:8px;">
+          <button class="export-btn" id="exportRegBtn">Download Excel</button>
+          <button id="refreshRegBtn">Refresh</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Email</th>
+            <th>Area</th>
+            <th>Meal Type / Price</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty hidden">No registrations yet.</div>
+    </div>
+
+    <div class="tab-panel" id="tabLeads">
+      <div class="table-header-row">
+        <div class="refresh-note">Showing all survey responses, newest first.</div>
+        <div style="display:flex;gap:8px;">
+          <button class="export-btn" id="exportLeadBtn">Download Excel</button>
+          <button id="refreshLeadBtn">Refresh</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Email</th>
+            <th>Who</th>
+            <th>Origin</th>
+            <th>Meal Types</th>
+            <th>Budget (Normal)</th>
+            <th>Budget (Special)</th>
+            <th>Location</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody id="leadsTableBody"></tbody>
+      </table>
+      <div id="leadsEmptyState" class="empty hidden">No survey responses yet.</div>
+    </div>
+
+    <div class="tab-panel" id="tabDaily">
+      <div class="panel-box">
+        <h3>Today's Deliveries</h3>
+        <p>Generate today's orders for every registered customer, then track them through the day.</p>
+        <div class="flex-row">
+          <button id="generateTodayBtn">Generate Today's Orders</button>
+          <button id="refreshDailyBtn" class="ghost">Refresh</button>
+          <button class="export-btn" id="exportDailyBtn">Download Excel</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Email</th>
+            <th>Area</th>
+            <th>Meal / Price</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="dailyTableBody"></tbody>
+      </table>
+      <div id="dailyEmptyState" class="empty hidden">No orders generated for today yet — click "Generate Today's Orders" above.</div>
+    </div>
+
+    <div class="tab-panel" id="tabMenu">
+      <div class="panel-box">
+        <h3>Add / Edit Menu Item</h3>
+        <div class="flex-row" style="margin-bottom:10px;">
+          <input type="text" id="menuName" placeholder="Dish name" />
+          <select id="menuType" style="flex:1;min-width:120px;padding:10px;border:1.5px solid var(--line);border-radius:10px;">
+            <option value="veg">Veg</option>
+            <option value="non-veg">Non-Veg</option>
+          </select>
+          <input type="number" id="menuPrice" placeholder="Price ₹" style="max-width:120px;" />
+        </div>
+        <div class="flex-row">
+          <input type="text" id="menuDesc" placeholder="Short description (optional)" />
+          <button id="addMenuBtn">Add to Menu</button>
+        </div>
+      </div>
+      <div class="panel-box">
+        <h3>Push Menu to Customers</h3>
+        <p>Emails today's active menu to every registered customer using your notification sender email.</p>
+        <button id="pushMenuBtn">Push Menu to All Customers</button>
+        <div class="auth-success" id="pushMenuSuccess" style="display:none;margin-top:10px;"></div>
+        <div class="auth-error" id="pushMenuError" style="display:none;margin-top:10px;"></div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Dish</th>
+            <th>Type</th>
+            <th>Price</th>
+            <th>Description</th>
+            <th>Active</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="menuTableBody"></tbody>
+      </table>
+      <div id="menuEmptyState" class="empty hidden">No menu items yet — add one above.</div>
+    </div>
+
+    <div class="tab-panel" id="tabSubs">
+      <div class="panel-box">
+        <h3>Add Subscription</h3>
+        <p>Set up a recurring plan for a customer. Price auto-calculates from meal price × plan duration, but you can adjust it.</p>
+        <div class="flex-row" style="margin-bottom:10px;">
+          <select id="subsCustomer" style="flex:2;min-width:220px;padding:10px;border:1.5px solid var(--line);border-radius:10px;">
+            <option value="">-- Select customer --</option>
+          </select>
+          <select id="subsMeal" style="flex:1;min-width:180px;padding:10px;border:1.5px solid var(--line);border-radius:10px;">
+            <option value="">-- Select meal --</option>
+          </select>
+          <select id="subsPlanType" style="flex:1;min-width:140px;padding:10px;border:1.5px solid var(--line);border-radius:10px;">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="annual">Annual</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="flex-row" style="margin-bottom:10px;">
+          <input type="number" id="subsPrice" placeholder="Total Price ₹ (auto-calculated)" />
+          <label style="align-self:center;font-size:13px;color:var(--muted);">Start date:</label>
+          <input type="date" id="subsStartDate" />
+          <div id="customEndWrap" class="hidden" style="display:flex;align-items:center;gap:8px;">
+            <label style="font-size:13px;color:var(--muted);">End date:</label>
+            <input type="date" id="subsCustomEndDate" />
+          </div>
+        </div>
+        <button id="addSubsBtn">Create Subscription</button>
+      </div>
+
+      <div class="panel-box">
+        <h3>Default Plan Prices (optional helper)</h3>
+        <p>Set typical prices so they auto-fill when you pick a plan type above. This is just a convenience — saved in your browser.</p>
+        <div class="flex-row">
+          <input type="number" id="priceDaily" placeholder="Daily ₹" />
+          <input type="number" id="priceWeekly" placeholder="Weekly ₹" />
+          <input type="number" id="priceMonthly" placeholder="Monthly ₹" />
+          <input type="number" id="priceQuarterly" placeholder="Quarterly ₹" />
+          <input type="number" id="priceAnnual" placeholder="Annual ₹" />
+          <button id="saveDefaultPricesBtn" class="ghost">Save Defaults</button>
+        </div>
+      </div>
+
+      <div class="table-header-row">
+        <div class="refresh-note">Showing all subscriptions, newest first.</div>
+        <div style="display:flex;gap:8px;">
+          <button class="export-btn" id="exportSubsBtn">Download Excel</button>
+          <button id="refreshSubsBtn">Refresh</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Meal</th>
+            <th>Plan</th>
+            <th>Price</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="subsTableBody"></tbody>
+      </table>
+      <div id="subsEmptyState" class="empty hidden">No subscriptions yet — add one above.</div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+if (window.__kcubeAdminLoaded) {
+  console.warn('Admin script already loaded — skipping duplicate execution.');
+} else {
+window.__kcubeAdminLoaded = true;
+(function(){
+  const SUPABASE_URL = "https://kuwldjfdgzzflqucdasx.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_YCajekLcdhKAryRRQyhf6A_GZd363zy";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+  const views = {
+    login: document.getElementById('loginView'),
+    signup: document.getElementById('signupView'),
+    forgot: document.getElementById('forgotView'),
+    reset: document.getElementById('resetView'),
+    dashboard: document.getElementById('dashboard')
+  };
+
+  function showOnly(name){
+    Object.keys(views).forEach(k => views[k].classList.toggle('hidden', k !== name));
+  }
+
+  document.getElementById('showForgot').addEventListener('click', () => showOnly('forgot'));
+  document.getElementById('showSignup').addEventListener('click', () => showOnly('signup'));
+  document.getElementById('backFromSignup').addEventListener('click', () => showOnly('login'));
+  document.getElementById('backFromForgot').addEventListener('click', () => showOnly('login'));
+
+  document.getElementById('planLink').value = window.location.origin + '/choose-plan.html';
+  document.getElementById('copyPlanBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('planLink').value);
+    const btn = document.getElementById('copyPlanBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Registration & Plan Link', 1500);
+  });
+
+  document.getElementById('surveyLink').value = 'https://survey.kcubemeal2.shop/';
+  document.getElementById('copySurveyBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('surveyLink').value);
+    const btn = document.getElementById('copySurveyBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Survey Link', 1500);
+  });
+
+  const tabRegBtn = document.getElementById('tabRegBtn');
+  const tabLeadBtn = document.getElementById('tabLeadBtn');
+  const tabDailyBtn = document.getElementById('tabDailyBtn');
+  const tabMenuBtn = document.getElementById('tabMenuBtn');
+  const tabSubsBtn = document.getElementById('tabSubsBtn');
+  const tabRegistrations = document.getElementById('tabRegistrations');
+  const tabLeads = document.getElementById('tabLeads');
+  const tabDaily = document.getElementById('tabDaily');
+  const tabMenu = document.getElementById('tabMenu');
+  const tabSubs = document.getElementById('tabSubs');
+
+  const allTabBtns = [tabRegBtn, tabLeadBtn, tabDailyBtn, tabMenuBtn, tabSubsBtn];
+  const allTabPanels = [tabRegistrations, tabLeads, tabDaily, tabMenu, tabSubs];
+
+  function activateTab(btn, panel){
+    allTabBtns.forEach(b => b.classList.remove('active'));
+    allTabPanels.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    panel.classList.add('active');
+  }
+
+  tabRegBtn.addEventListener('click', () => activateTab(tabRegBtn, tabRegistrations));
+  tabLeadBtn.addEventListener('click', () => activateTab(tabLeadBtn, tabLeads));
+  tabDailyBtn.addEventListener('click', () => { activateTab(tabDailyBtn, tabDaily); loadDailyOrders(); });
+  tabMenuBtn.addEventListener('click', () => { activateTab(tabMenuBtn, tabMenu); loadMenu(); });
+  tabSubsBtn.addEventListener('click', () => { activateTab(tabSubsBtn, tabSubs); loadSubscriptions(); populateSubsCustomerDropdown(); populateSubsMealDropdown(); });
+
+  supabase.auth.onAuthStateChange((event, session) => {
+    if(event === 'PASSWORD_RECOVERY'){
+      showOnly('reset');
+    }
+  });
+
+  async function checkSession(){
+    const { data } = await supabase.auth.getSession();
+    if(data.session){
+      showDashboard();
+    } else {
+      showOnly('login');
+    }
+  }
+
+  async function showDashboard(){
+    showOnly('dashboard');
+    await loadSettings();
+    await loadRegistrations();
+    await loadLeads();
+  }
+
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const errEl = document.getElementById('loginError');
+    errEl.style.display = 'none';
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if(error){
+      errEl.textContent = error.message;
+      errEl.style.display = 'block';
+      return;
+    }
+    showDashboard();
+  });
+
+  document.getElementById('signupBtn').addEventListener('click', async () => {
+    const errEl = document.getElementById('signupError');
+    const okEl = document.getElementById('signupSuccess');
+    errEl.style.display = 'none';
+    okEl.style.display = 'none';
+
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+
+    if(!email || password.length < 6){
+      errEl.textContent = 'Please enter an email and a password of at least 6 characters.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('signupBtn');
+    btn.disabled = true; btn.textContent = 'Creating...';
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    btn.disabled = false; btn.textContent = 'Create Account';
+
+    if(error){
+      errEl.textContent = error.message;
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if(data.session){
+      showDashboard();
+    } else {
+      okEl.textContent = 'Account created! Check your email to confirm, then come back and log in.';
+      okEl.style.display = 'block';
+    }
+  });
+
+  document.getElementById('forgotBtn').addEventListener('click', async () => {
+    const errEl = document.getElementById('forgotError');
+    const okEl = document.getElementById('forgotSuccess');
+    errEl.style.display = 'none';
+    okEl.style.display = 'none';
+
+    const email = document.getElementById('forgotEmail').value.trim();
+    if(!email){
+      errEl.textContent = 'Please enter your email.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('forgotBtn');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/' + window.location.pathname.split('/').pop()
+    });
+    btn.disabled = false; btn.textContent = 'Send Reset Link';
+
+    if(error){
+      errEl.textContent = error.message;
+      errEl.style.display = 'block';
+      return;
+    }
+    okEl.textContent = 'Reset link sent! Check your email and click the link — it will bring you back here to set a new password.';
+    okEl.style.display = 'block';
+  });
+
+  document.getElementById('updatePasswordBtn').addEventListener('click', async () => {
+    const errEl = document.getElementById('resetError');
+    const okEl = document.getElementById('resetSuccess');
+    errEl.style.display = 'none';
+    okEl.style.display = 'none';
+
+    const newPassword = document.getElementById('newPassword').value;
+    if(newPassword.length < 6){
+      errEl.textContent = 'Password must be at least 6 characters.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('updatePasswordBtn');
+    btn.disabled = true; btn.textContent = 'Updating...';
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    btn.disabled = false; btn.textContent = 'Update Password';
+
+    if(error){
+      errEl.textContent = error.message;
+      errEl.style.display = 'block';
+      return;
+    }
+
+    okEl.textContent = 'Password updated! Redirecting to your dashboard...';
+    okEl.style.display = 'block';
+    setTimeout(showDashboard, 1200);
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    showOnly('login');
+  });
+
+  async function loadSettings(){
+    const { data, error } = await supabase.from('admin_settings').select('*').eq('key', 'notification_email').single();
+    if(!error && data){
+      document.getElementById('notifEmail').value = data.value;
+    }
+  }
+
+  document.getElementById('saveEmailBtn').addEventListener('click', async () => {
+    const val = document.getElementById('notifEmail').value.trim();
+    if(!val) return;
+    const btn = document.getElementById('saveEmailBtn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    const { error } = await supabase.from('admin_settings').update({ value: val }).eq('key', 'notification_email');
+    btn.disabled = false; btn.textContent = 'Save';
+    if(error){ alert('Could not save: ' + error.message); }
+    else { alert('Saved!'); }
+  });
+
+  document.getElementById('refreshRegBtn').addEventListener('click', loadRegistrations);
+  document.getElementById('refreshLeadBtn').addEventListener('click', loadLeads);
+
+  const statusLabels = { received: 'Received', processing: 'Processing', packed: 'Packed', out_for_delivery: 'Out for Delivery', delivered: 'Delivered' };
+  const nextStatus = { received: 'processing', processing: 'packed', packed: 'out_for_delivery', out_for_delivery: 'delivered' };
+
+  function updateStats(registrations, leads){
+    const total = registrations.length;
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statLeads').textContent = leads.length;
+
+    const veg = registrations.filter(r => (r.meal_type || '').toLowerCase() === 'veg').length;
+    const nonVeg = registrations.filter(r => (r.meal_type || '').toLowerCase() === 'non-veg').length;
+    document.getElementById('statVeg').textContent = veg;
+    document.getElementById('statNonVeg').textContent = nonVeg;
+
+    const revenue = registrations
+      .filter(r => r.status === 'delivered' && r.price)
+      .reduce((sum, r) => sum + Number(r.price || 0), 0);
+    document.getElementById('statRevenue').textContent = '₹' + revenue.toLocaleString('en-IN');
+
+    const stageCounts = { received:0, processing:0, packed:0, out_for_delivery:0, delivered:0 };
+    registrations.forEach(r => {
+      const s = r.status || 'received';
+      if(stageCounts.hasOwnProperty(s)) stageCounts[s]++;
+    });
+    document.getElementById('statReceived').textContent = stageCounts.received;
+    document.getElementById('statProcessing').textContent = stageCounts.processing;
+    document.getElementById('statPacked').textContent = stageCounts.packed;
+    document.getElementById('statOutForDelivery').textContent = stageCounts.out_for_delivery;
+    document.getElementById('statDelivered').textContent = stageCounts.delivered;
+  }
+
+  let lastRegistrations = [];
+  let lastLeads = [];
+
+  async function loadRegistrations(){
+    const tbody = document.getElementById('tableBody');
+    const emptyState = document.getElementById('emptyState');
+    tbody.innerHTML = '';
+
+    const { data, error } = await supabase
+      .from('registrations')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if(error){
+      tbody.innerHTML = `<tr><td colspan="7">Error loading data: ${error.message}</td></tr>`;
+      return;
+    }
+
+    lastRegistrations = data || [];
+    updateStats(lastRegistrations, lastLeads);
+
+    if(!data || data.length === 0){
+      emptyState.classList.remove('hidden');
+      return;
+    }
+    emptyState.classList.add('hidden');
+
+    data.forEach(row => {
+      const tr = document.createElement('tr');
+      const created = new Date(row.created_at).toLocaleString();
+      const status = row.status || 'received';
+
+      let actionButtons = '';
+      if(status !== 'delivered'){
+        const next = nextStatus[status];
+        actionButtons += `<button data-id="${row.id}" data-status="${next}" class="advanceBtn">Mark ${statusLabels[next]}</button>`;
+      }
+      actionButtons += `<button data-id="${row.id}" class="deleteRegBtn">Delete</button>`;
+
+      const mealType = row.meal_type || '';
+      const price = row.price != null ? row.price : '';
+
+      tr.innerHTML = `
+        <td>${escapeHtml(row.name)}</td>
+        <td>${escapeHtml(row.mobile)}</td>
+        <td>${escapeHtml(row.email)}</td>
+        <td>${escapeHtml(row.delivery_area)}</td>
+        <td>
+          <div class="meal-edit-row">
+            <select class="mealTypeSelect" data-id="${row.id}">
+              <option value="" ${mealType===''?'selected':''}>--</option>
+              <option value="veg" ${mealType==='veg'?'selected':''}>Veg</option>
+              <option value="non-veg" ${mealType==='non-veg'?'selected':''}>Non-Veg</option>
+            </select>
+            <input type="number" class="priceInput" data-id="${row.id}" placeholder="₹" value="${price}" />
+            <button class="saveMealBtn" data-id="${row.id}">Save</button>
+          </div>
+        </td>
+        <td><span class="badge ${status}">${statusLabels[status]}</span></td>
+        <td>${created}</td>
+        <td class="actions">${actionButtons}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.saveMealBtn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = e.target.getAttribute('data-id');
+        const row = e.target.closest('tr');
+        const mealType = row.querySelector('.mealTypeSelect').value;
+        const priceVal = row.querySelector('.priceInput').value;
+        e.target.disabled = true;
+        e.target.textContent = '...';
+        const { error } = await supabase.from('registrations').update({
+          meal_type: mealType || null,
+          price: priceVal === '' ? null : Number(priceVal)
+        }).eq('id', id);
+        e.target.disabled = false;
+        e.target.textContent = 'Save';
+        if(error){ alert('Failed to save: ' + error.message); return; }
+        await loadRegistrations();
+      });
+    });
+
+    document.querySelectorAll('.deleteRegBtn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        if(!confirm('Delete this customer permanently? This cannot be undone.')) return;
+        const id = e.target.getAttribute('data-id');
+        const { error } = await supabase.from('registrations').delete().eq('id', id);
+        if(error){ alert('Failed to delete: ' + error.message); return; }
+        await loadRegistrations();
+      });
+    });
+
+    document.querySelectorAll('.advanceBtn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = e.target.getAttribute('data-id');
+        const newStatus = e.target.getAttribute('data-status');
+        e.target.disabled = true;
+        e.target.textContent = 'Updating...';
+
+        const { error } = await supabase.from('registrations').update({ status: newStatus }).eq('id', id);
+        if(error){
+          alert('Failed to update: ' + error.message);
+          await loadRegistrations();
+          return;
+        }
+
+        try {
+          await fetch('/.netlify/functions/send-status-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, status: newStatus })
+          });
+        } catch(err){
+          console.error('Email trigger failed', err);
+        }
+
+        await loadRegistrations();
+      });
+    });
+  }
+
+  async function loadLeads(){
+    const tbody = document.getElementById('leadsTableBody');
+    const emptyState = document.getElementById('leadsEmptyState');
+    tbody.innerHTML = '';
+
+    const { data, error } = await supabase
+      .from('kcube_leads')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if(error){
+      tbody.innerHTML = `<tr><td colspan="9">Error loading data: ${error.message}</td></tr>`;
+      return;
+    }
+
+    lastLeads = data || [];
+    updateStats(lastRegistrations, lastLeads);
+
+    if(!data || data.length === 0){
+      emptyState.classList.remove('hidden');
+      return;
+    }
+    emptyState.classList.add('hidden');
+
+    data.forEach(row => {
+      const tr = document.createElement('tr');
+      const created = new Date(row.created_at).toLocaleString();
+      tr.innerHTML = `
+        <td>${escapeHtml(row.name)}</td>
+        <td>${escapeHtml(row.mobile)}</td>
+        <td>${escapeHtml(row.email)}</td>
+        <td>${escapeHtml(row.who)}</td>
+        <td>${escapeHtml(row.origin)}</td>
+        <td>${escapeHtml(row.meal_types)}</td>
+        <td>${escapeHtml(row.budget_normal)}</td>
+        <td>${escapeHtml(row.budget_special)}</td>
+        <td>${escapeHtml(row.location)}</td>
+        <td>${created}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function escapeHtml(str){
+    if(!str) return '';
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  document.getElementById('exportRegBtn').addEventListener('click', () => {
+    if(!lastRegistrations.length){ alert('No registrations to export yet.'); return; }
+    const rows = lastRegistrations.map(r => ({
+      Name: r.name, Mobile: r.mobile, Email: r.email, Area: r.delivery_area,
+      'Meal Type': r.meal_type || '', 'Price (₹)': r.price != null ? r.price : '',
+      Status: statusLabels[r.status || 'received'],
+      Submitted: new Date(r.created_at).toLocaleString()
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+    XLSX.writeFile(wb, 'kcube_orders_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  });
+
+  document.getElementById('exportLeadBtn').addEventListener('click', () => {
+    if(!lastLeads.length){ alert('No survey responses to export yet.'); return; }
+    const rows = lastLeads.map(r => ({
+      Name: r.name, Mobile: r.mobile, Email: r.email, Who: r.who, Origin: r.origin,
+      'Meal Types': r.meal_types, 'Budget (Normal)': r.budget_normal, 'Budget (Special)': r.budget_special,
+      Location: r.location, Submitted: new Date(r.created_at).toLocaleString()
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Survey Leads');
+    XLSX.writeFile(wb, 'kcube_survey_leads_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  });
+
+  // ============================================
+  // DAILY WORKFLOW
+  // ============================================
+  const dailyStatusLabels = { received: 'Received', processing: 'Processing', packed: 'Packed', out_for_delivery: 'Out for Delivery', delivered: 'Delivered' };
+  const dailyNextStatus = { received: 'processing', processing: 'packed', packed: 'out_for_delivery', out_for_delivery: 'delivered' };
+  let lastDailyOrders = [];
+
+  document.getElementById('generateTodayBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('generateTodayBtn');
+    btn.disabled = true; btn.textContent = 'Generating...';
+
+    const today = new Date().toISOString().slice(0,10);
+
+    const { data: activeSubs, error: subsError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('status', 'active')
+      .lte('start_date', today)
+      .gte('end_date', today);
+
+    if(subsError){
+      alert('Could not load subscriptions: ' + subsError.message);
+      btn.disabled = false; btn.textContent = "Generate Today's Orders";
+      return;
+    }
+
+    if(!activeSubs || activeSubs.length === 0){
+      alert('No active subscriptions cover today. Add subscriptions in the Subscriptions tab first.');
+      btn.disabled = false; btn.textContent = "Generate Today's Orders";
+      return;
+    }
+
+    const rows = activeSubs.map(s => ({
+      registration_id: s.registration_id,
+      customer_name: s.customer_name,
+      customer_mobile: s.customer_mobile,
+      customer_email: s.customer_email,
+      delivery_area: null,
+      delivery_date: today,
+      meal_type: null,
+      price: s.price,
+      status: 'received'
+    }));
+
+    const { error: insertError } = await supabase
+      .from('daily_orders')
+      .upsert(rows, { onConflict: 'registration_id,delivery_date', ignoreDuplicates: true });
+
+    btn.disabled = false; btn.textContent = "Generate Today's Orders";
+
+    if(insertError){
+      alert('Could not generate orders: ' + insertError.message);
+      return;
+    }
+    await loadDailyOrders();
+  });
+
+  document.getElementById('refreshDailyBtn').addEventListener('click', loadDailyOrders);
+
+  async function loadDailyOrders(){
+    const tbody = document.getElementById('dailyTableBody');
+    const emptyState = document.getElementById('dailyEmptyState');
+    tbody.innerHTML = '';
+
+    const today = new Date().toISOString().slice(0,10);
+    const { data, error } = await supabase
+      .from('daily_orders')
+      .select('*')
+      .eq('delivery_date', today)
+      .order('created_at', { ascending: false });
+
+    if(error){
+      tbody.innerHTML = `<tr><td colspan="7">Error loading data: ${error.message}</td></tr>`;
+      return;
+    }
+
+    lastDailyOrders = data || [];
+
+    if(!data || data.length === 0){
+      emptyState.classList.remove('hidden');
+      return;
+    }
+    emptyState.classList.add('hidden');
+
+    data.forEach(row => {
+      const tr = document.createElement('tr');
+      const status = row.status || 'received';
+      let actionButtons = '';
+      if(status !== 'delivered'){
+        const next = dailyNextStatus[status];
+        actionButtons += `<button data-id="${row.id}" data-status="${next}" class="advanceDailyBtn">Mark ${dailyStatusLabels[next]}</button>`;
+      }
+
+      const mealType = row.meal_type || '';
+      const price = row.price != null ? row.price : '';
+
+      tr.innerHTML = `
+        <td>${escapeHtml(row.customer_name)}</td>
+        <td>${escapeHtml(row.customer_mobile)}</td>
+        <td>${escapeHtml(row.customer_email)}</td>
+        <td>${escapeHtml(row.delivery_area)}</td>
+        <td>
+          <div class="meal-edit-row">
+            <select class="dailyMealTypeSelect" data-id="${row.id}">
+              <option value="" ${mealType===''?'selected':''}>--</option>
+              <option value="veg" ${mealType==='veg'?'selected':''}>Veg</option>
+              <option value="non-veg" ${mealType==='non-veg'?'selected':''}>Non-Veg</option>
+            </select>
+            <input type="number" class="dailyPriceInput" data-id="${row.id}" placeholder="₹" value="${price}" />
+            <button class="saveDailyMealBtn" data-id="${row.id}">Save</button>
+          </div>
+        </td>
+        <td><span class="badge ${status}">${dailyStatusLabels[status]}</span></td>
+        <td class="actions">${actionButtons}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.saveDailyMealBtn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = e.target.getAttribute('data-id');
+        const row = e.target.closest('tr');
+        const mealType = row.querySelector('.dailyMealTypeSelect').value;
+        const priceVal = row.querySelector('.dailyPriceInput').value;
+        e.target.disabled = true; e.target.textContent = '...';
+        const { error } = await supabase.from('daily_orders').update({
+          meal_type: mealType || null,
+          price: priceVal === '' ? null : Number(priceVal)
+        }).eq('id', id);
+        e.target.disabled = false; e.target.textContent = 'Save';
+        if(error){ alert('Failed to save: ' + error.message); return; }
+        await loadDailyOrders();
+      });
+    });
+
+    document.querySelectorAll('.advanceDailyBtn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = e.target.getAttribute('data-id');
+        const newStatus = e.target.getAttribute('data-status');
+        e.target.disabled = true; e.target.textContent = 'Updating...';
+
+        const { error } = await supabase.from('daily_orders').update({ status: newStatus }).eq('id', id);
+        if(error){
+          alert('Failed to update: ' + error.message);
+          await loadDailyOrders();
+          return;
+        }
+
+        try {
+          await fetch('/.netlify/functions/send-status-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, status: newStatus, table: 'daily_orders' })
+          });
+        } catch(err){
+          console.error('Email trigger failed', err);
+        }
+
+        await loadDailyOrders();
+      });
+    });
+  }
+
+  document.getElementById('exportDailyBtn').addEventListener('click', () => {
+    if(!lastDailyOrders.length){ alert('No orders to export yet.'); return; }
+    const rows = lastDailyOrders.map(r => ({
+      Name: r.customer_name, Mobile: r.customer_mobile, Email: r.customer_email, Area: r.delivery_area,
+      'Meal Type': r.meal_type || '', 'Price (₹)': r.price != null ? r.price : '',
+      Status: dailyStatusLabels[r.status || 'received'], Date: r.delivery_date
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Daily Orders');
+    XLSX.writeFile(wb, 'kcube_daily_orders_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  });
+
+  // ============================================
+  // MENU MANAGEMENT
+  // ============================================
+  document.getElementById('addMenuBtn').addEventListener('click', async () => {
+    const name = document.getElementById('menuName').value.trim();
+    const type = document.getElementById('menuType').value;
+    const price = document.getElementById('menuPrice').value;
+    const desc = document.getElementById('menuDesc').value.trim();
+
+    if(!name){ alert('Please enter a dish name.'); return; }
+
+    const btn = document.getElementById('addMenuBtn');
+    btn.disabled = true; btn.textContent = 'Adding...';
+    const { error } = await supabase.from('menu_items').insert({
+      name, meal_type: type, price: price === '' ? null : Number(price), description: desc || null, active: true
+    });
+    btn.disabled = false; btn.textContent = 'Add to Menu';
+
+    if(error){ alert('Failed to add: ' + error.message); return; }
+
+    document.getElementById('menuName').value = '';
+    document.getElementById('menuPrice').value = '';
+    document.getElementById('menuDesc').value = '';
+    await loadMenu();
+  });
+
+  document.getElementById('pushMenuBtn').addEventListener('click', async () => {
+    const errEl = document.getElementById('pushMenuError');
+    const okEl = document.getElementById('pushMenuSuccess');
+    errEl.style.display = 'none'; okEl.style.display = 'none';
+
+    const btn = document.getElementById('pushMenuBtn');
+    btn.disabled = true; btn.textContent = 'Sending...';
+
+    try {
+      const resp = await fetch('/.netlify/functions/send-menu', { method: 'POST' });
+      const result = await resp.json();
+      btn.disabled = false; btn.textContent = 'Push Menu to All Customers';
+
+      if(result.error){
+        errEl.textContent = 'Error: ' + result.error;
+        errEl.style.display = 'block';
+        return;
+      }
+      okEl.textContent = `Menu sent to ${result.sentCount} of ${result.total} customers!`;
+      okEl.style.display = 'block';
+    } catch(err){
+      btn.disabled = false; btn.textContent = 'Push Menu to All Customers';
+      errEl.textContent = 'Failed to send: ' + err.message;
+      errEl.style.display = 'block';
+    }
+  });
+
+  async function loadMenu(){
+    const tbody = document.getElementById('menuTableBody');
+    const emptyState = document.getElementById('menuEmptyState');
+    tbody.innerHTML = '';
+
+    const { data, error } = await supabase.from('menu_items').select('*').order('created_at', { ascending: false });
+
+    if(error){
+      tbody.innerHTML = `<tr><td colspan="6">Error loading menu: ${error.message}</td></tr>`;
+      return;
+    }
+
+    if(!data || data.length === 0){
+      emptyState.classList.remove('hidden');
+      return;
+    }
+    emptyState.classList.add('hidden');
+
+    data.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(row.name)}</td>
+        <td>${escapeHtml(row.meal_type)}</td>
+        <td>₹${row.price != null ? row.price : '-'}</td>
+        <td>${escapeHtml(row.description)}</td>
+        <td>${row.active ? 'Yes' : 'No'}</td>
+        <td class="actions">
+          <button class="toggleMenuBtn" data-id="${row.id}" data-active="${row.active}">${row.active ? 'Deactivate' : 'Activate'}</button>
+          <button class="deleteMenuBtn" data-id="${row.id}">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.toggleMenuBtn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = e.target.getAttribute('data-id');
+        const currentlyActive = e.target.getAttribute('data-active') === 'true';
+        const { error } = await supabase.from('menu_items').update({ active: !currentlyActive }).eq('id', id);
+        if(error){ alert('Failed: ' + error.message); return; }
+        await loadMenu();
+      });
+    });
+
+    document.querySelectorAll('.deleteMenuBtn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        if(!confirm('Delete this menu item?')) return;
+        const id = e.target.getAttribute('data-id');
+        const { error } = await supabase.from('menu_items').delete().eq('id', id);
+        if(error){ alert('Failed: ' + error.message); return; }
+        await loadMenu();
+      });
+    });
+  }
+
+  // ============================================
+  // SUBSCRIPTIONS
+  // ============================================
+  const planDurationDays = { daily: 1, weekly: 7, monthly: 30, quarterly: 90, annual: 365 };
+  let lastSubscriptions = [];
+
+  // Load/save default plan prices to the shared plan_prices table (visible to customers on choose-plan.html)
+  async function loadDefaultPrices(){
+    const { data, error } = await supabase.from('plan_prices').select('*');
+    if(error || !data) return;
+    data.forEach(row => {
+      const el = document.getElementById('price' + row.plan_type.charAt(0).toUpperCase() + row.plan_type.slice(1));
+      if(el) el.value = row.price;
+    });
+  }
+
+  document.getElementById('saveDefaultPricesBtn').addEventListener('click', async () => {
+    const prices = [
+      { plan_type: 'daily', price: document.getElementById('priceDaily').value },
+      { plan_type: 'weekly', price: document.getElementById('priceWeekly').value },
+      { plan_type: 'monthly', price: document.getElementById('priceMonthly').value },
+      { plan_type: 'quarterly', price: document.getElementById('priceQuarterly').value },
+      { plan_type: 'annual', price: document.getElementById('priceAnnual').value }
+    ].filter(p => p.price !== '').map(p => ({ ...p, price: Number(p.price) }));
+
+    if(prices.length === 0){ alert('Please enter at least one price.'); return; }
+
+    const btn = document.getElementById('saveDefaultPricesBtn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    const { error } = await supabase.from('plan_prices').upsert(prices, { onConflict: 'plan_type' });
+    btn.disabled = false; btn.textContent = 'Save Defaults';
+
+    if(error){ alert('Failed to save: ' + error.message); return; }
+    alert('Default prices saved! Customers will now see these on the plan selection page.');
+  });
+
+  async function populateSubsMealDropdown(){
+    const select = document.getElementById('subsMeal');
+    const currentValue = select.value;
+    const { data, error } = await supabase.from('menu_items').select('*').eq('active', true).order('name');
+    if(error || !data) return;
+    select.innerHTML = '<option value="">-- Select meal --</option>' +
+      data.map(m => `<option value="${m.id}" data-price="${m.price || 0}">${escapeHtml(m.name)} (₹${m.price || '-'}/meal)</option>`).join('');
+    select.value = currentValue;
+  }
+
+  function recalcSubsPrice(){
+    const mealSelect = document.getElementById('subsMeal');
+    const mealOption = mealSelect.options[mealSelect.selectedIndex];
+    const planType = document.getElementById('subsPlanType').value;
+    if(!mealSelect.value || planType === 'custom' || !planDurationDays[planType]) return;
+    const mealPrice = Number(mealOption.getAttribute('data-price') || 0);
+    document.getElementById('subsPrice').value = mealPrice * planDurationDays[planType];
+  }
+
+  document.getElementById('subsMeal').addEventListener('change', recalcSubsPrice);
+
+  document.getElementById('subsPlanType').addEventListener('change', async () => {
+    const type = document.getElementById('subsPlanType').value;
+    const customEndWrap = document.getElementById('customEndWrap');
+    customEndWrap.style.display = type === 'custom' ? 'flex' : 'none';
+    recalcSubsPrice();
+  });
+
+  document.getElementById('subsStartDate').valueAsDate = new Date();
+
+  async function populateSubsCustomerDropdown(){
+    const select = document.getElementById('subsCustomer');
+    const currentValue = select.value;
+    const { data, error } = await supabase.from('registrations').select('id, name, mobile, email').order('name');
+    if(error || !data) return;
+    select.innerHTML = '<option value="">-- Select customer --</option>' +
+      data.map(c => `<option value="${c.id}" data-name="${escapeHtml(c.name)}" data-mobile="${escapeHtml(c.mobile)}" data-email="${escapeHtml(c.email)}">${escapeHtml(c.name)} (${escapeHtml(c.mobile)})</option>`).join('');
+    select.value = currentValue;
+  }
+
+  document.getElementById('addSubsBtn').addEventListener('click', async () => {
+    const customerSelect = document.getElementById('subsCustomer');
+    const selectedOption = customerSelect.options[customerSelect.selectedIndex];
+
+    if(!customerSelect.value){ alert('Please select a customer.'); return; }
+
+    const planType = document.getElementById('subsPlanType').value;
+    const price = document.getElementById('subsPrice').value;
+    const startDate = document.getElementById('subsStartDate').value;
+
+    if(!startDate){ alert('Please pick a start date.'); return; }
+
+    let endDate;
+    if(planType === 'custom'){
+      endDate = document.getElementById('subsCustomEndDate').value;
+      if(!endDate){ alert('Please pick an end date for custom plan.'); return; }
+    } else {
+      const start = new Date(startDate);
+      start.setDate(start.getDate() + planDurationDays[planType] - 1);
+      endDate = start.toISOString().slice(0,10);
+    }
+
+    const btn = document.getElementById('addSubsBtn');
+    btn.disabled = true; btn.textContent = 'Creating...';
+
+    const mealSelect = document.getElementById('subsMeal');
+    const mealOption = mealSelect.options[mealSelect.selectedIndex];
+
+    const { error } = await supabase.from('subscriptions').insert({
+      registration_id: customerSelect.value,
+      customer_name: selectedOption.getAttribute('data-name'),
+      customer_mobile: selectedOption.getAttribute('data-mobile'),
+      customer_email: selectedOption.getAttribute('data-email'),
+      plan_type: planType,
+      price: price === '' ? null : Number(price),
+      start_date: startDate,
+      end_date: endDate,
+      status: 'active',
+      menu_item_id: mealSelect.value || null,
+      meal_name: mealSelect.value ? mealOption.textContent : null
+    });
+
+    btn.disabled = false; btn.textContent = 'Create Subscription';
+
+    if(error){ alert('Failed to create subscription: ' + error.message); return; }
+
+    document.getElementById('subsPrice').value = '';
+    await loadSubscriptions();
+  });
+
+  async function loadSubscriptions(){
+    const tbody = document.getElementById('subsTableBody');
+    const emptyState = document.getElementById('subsEmptyState');
+    tbody.innerHTML = '';
+
+    const { data, error } = await supabase.from('subscriptions').select('*').order('created_at', { ascending: false });
+
+    if(error){
+      tbody.innerHTML = `<tr><td colspan="9">Error loading data: ${error.message}</td></tr>`;
+      return;
+    }
+
+    lastSubscriptions = data || [];
+
+    if(!data || data.length === 0){
+      emptyState.classList.remove('hidden');
+      return;
+    }
+    emptyState.classList.add('hidden');
+
+    const today = new Date().toISOString().slice(0,10);
+    const planTypeLabels = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', quarterly: 'Quarterly', annual: 'Annual', custom: 'Custom' };
+
+    data.forEach(row => {
+      const tr = document.createElement('tr');
+      let displayStatus = row.status;
+      if(row.status === 'active' && row.end_date < today) displayStatus = 'expired';
+
+      tr.innerHTML = `
+        <td>${escapeHtml(row.customer_name)}</td>
+        <td>${escapeHtml(row.customer_mobile)}</td>
+        <td>${escapeHtml(row.meal_name) || '-'}</td>
+        <td>${planTypeLabels[row.plan_type] || row.plan_type}</td>
+        <td>₹${row.price != null ? row.price : '-'}</td>
+        <td>${row.start_date}</td>
+        <td>${row.end_date}</td>
+        <td><span class="badge ${displayStatus === 'expired' ? 'pending' : displayStatus === 'cancelled' ? 'pending' : 'delivered'}">${displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}</span></td>
+        <td class="actions">
+          ${displayStatus === 'active' ? `<button class="cancelSubsBtn" data-id="${row.id}">Cancel</button>` : ''}
+          <button class="deleteSubsBtn" data-id="${row.id}">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.cancelSubsBtn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        if(!confirm('Cancel this subscription?')) return;
+        const id = e.target.getAttribute('data-id');
+        const { error } = await supabase.from('subscriptions').update({ status: 'cancelled' }).eq('id', id);
+        if(error){ alert('Failed: ' + error.message); return; }
+        await loadSubscriptions();
+      });
+    });
+
+    document.querySelectorAll('.deleteSubsBtn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        if(!confirm('Delete this subscription permanently?')) return;
+        const id = e.target.getAttribute('data-id');
+        const { error } = await supabase.from('subscriptions').delete().eq('id', id);
+        if(error){ alert('Failed: ' + error.message); return; }
+        await loadSubscriptions();
+      });
+    });
+  }
+
+  document.getElementById('refreshSubsBtn').addEventListener('click', loadSubscriptions);
+
+  document.getElementById('exportSubsBtn').addEventListener('click', () => {
+    if(!lastSubscriptions.length){ alert('No subscriptions to export yet.'); return; }
+    const rows = lastSubscriptions.map(r => ({
+      Name: r.customer_name, Mobile: r.customer_mobile, Email: r.customer_email,
+      'Plan Type': r.plan_type, 'Price (₹)': r.price != null ? r.price : '',
+      'Start Date': r.start_date, 'End Date': r.end_date, Status: r.status
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Subscriptions');
+    XLSX.writeFile(wb, 'kcube_subscriptions_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  });
+
+  loadDefaultPrices();
+
+  checkSession();
+})();
+}
+</script>
+
+</body>
+</html>
